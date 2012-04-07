@@ -7,7 +7,7 @@ NOWDATE=`date +%Y-%m-%d`
 LASTDATE=$(date +%Y-%m-%d --date='1 week ago')
 
 # set backup directory variables
-SRCDIR='tmp/s3backups'
+SRCDIR='/tmp/s3backups'
 DESTDIR='bucket-folder'
 BUCKET='bucket'
 
@@ -26,20 +26,18 @@ mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > /
 done
 
 # tar all the databases into $NOWDATE-backups.tar.gz
-cd /$SRCDIR/
-tar -czf $NOWDATE-backup.tar.gz .
-cd
+tar -czPf $SRCDIR/$NOWDATE-backup.tar.gz $SRCDIR/*.sql
 
 # upload all databases
-/usr/bin/s3cmd put /$SRCDIR/$NOWDATE-backup.tar.gz s3://$BUCKET/$DESTDIR/
+/usr/bin/s3cmd put $SRCDIR/$NOWDATE-backup.tar.gz s3://$BUCKET/$DESTDIR/
 
 # rotate out old backups
 /usr/bin/s3cmd del --recursive s3://$BUCKET/$DESTDIR/$LASTDATE-backup.tar.gz
 
 # remove all local dumps
-rm /$SRCDIR/$NOWDATE-backup.tar.gz
+rm -f $SRCDIR/$NOWDATE-backup.tar.gz
 
-for FILE in $(echo $(ls /$SRCDIR/))
+for FILE in $(echo $(ls $SRCDIR/))
 do
-rm /$SRCDIR/$FILE
+rm -f $SRCDIR/$FILE
 done
