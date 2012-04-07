@@ -22,11 +22,13 @@ PASS='backuppass'
 for DB in $(mysql -u$USER -p$PASS -BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
 do
 mysqlcheck -h$HOST -u$USER -p$PASS --auto-repair --optimize $DB
-mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > /$SRCDIR/$DB.sql
+mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > $SRCDIR/$DB.sql
 done
 
 # tar all the databases into $NOWDATE-backups.tar.gz
-tar -czPf $SRCDIR/$NOWDATE-backup.tar.gz $SRCDIR/*.sql
+cd $SRCDIR
+tar -czPf $NOWDATE-backup.tar.gz *.sql
+cd
 
 # upload all databases
 /usr/bin/s3cmd put $SRCDIR/$NOWDATE-backup.tar.gz s3://$BUCKET/$DESTDIR/
