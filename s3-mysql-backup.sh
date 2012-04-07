@@ -6,24 +6,22 @@
 NOWDATE=`date +%Y-%m-%d`
 LASTDATE=$(date +%Y-%m-%d --date='1 week ago')
 
-# set local server tmp backup directory
+# set backup directory variables
 SRCDIR='tmp/s3backups'
-
-# set s3 backup bucket and folder
 DESTDIR='bucket-folder'
 BUCKET='bucket'
 
-# set mysql access details
-HOST='localhost'
+# mysql access details
+HOST='127.0.0.1'
 USER='backupuser'
 PASS='backuppass'
 
 #### END CONFIGURATION ####
 
-# check, repair, optimize, and dump each database to its own sql file
-for DB in $(echo 'show databases' | mysql -h$HOST -u$USER -p$PASS --batch -N)
+# repair, optimize, and dump each database to its own sql file
+for DB in $(mysql -u$USER -p$PASS -BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
 do
-mysqlcheck -h$HOST -u$USER -p$PASS --auto-repair --check --optimize $DB
+mysqlcheck -h$HOST -u$USER -p$PASS --auto-repair --optimize $DB
 mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > /$SRCDIR/$DB.sql
 done
 
