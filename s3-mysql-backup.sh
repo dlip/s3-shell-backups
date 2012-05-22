@@ -18,6 +18,9 @@ PASS='backuppass'
 
 #### END CONFIGURATION ####
 
+# Create the tmp database directory if it doesn't exist
+mkdir -p #SRCDIR
+
 # repair, optimize, and dump each database to its own sql file
 for DB in $(mysql -u$USER -p$PASS -BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
 do
