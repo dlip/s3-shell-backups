@@ -8,9 +8,9 @@ DESTDIR='bucket-folder'
 BUCKET='bucket'
 
 # database access details
-HOST=''
-USER='root'
-PASS=''
+HOST='127.0.0.1'
+USER='dbusername'
+PASS='dbpassword'
 
 #### END CONFIGURATION ####
 
@@ -18,16 +18,10 @@ PASS=''
 mkdir -p $SRCDIR
 cd $SRCDIR
 
-# get list of databases
-DBLIST=`psql -l -U $USER \
-  | awk '{print $1}' | grep -v "+" | grep -v "Name" | \
-  grep -v "List" | grep -v "(" | grep -v "template" | \
-  grep -v "postgres" | grep -v "root" | grep -v "|" | grep -v "|"`
-
 # dump each database to its own sql file and upload it to s3
-for DB in ${DBLIST}
+for DB in $(mysql -u$USER -p$PASS -BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
 do
-pg_dump -Oxc -U $USER $DB > $DB.sql 
+mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > $DB.sql
 tar -czPf $DB.tar.gz $DB.sql
 /usr/bin/s3cmd put $SRCDIR/$DB.tar.gz s3://$BUCKET/$DESTDIR/
 done
