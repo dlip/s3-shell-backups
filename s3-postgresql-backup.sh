@@ -13,20 +13,21 @@ BUCKET='bucket'
 
 # database access details
 HOST=''
-USER='backupuser'
+USER='root'
 PASS=''
 
 #### END CONFIGURATION ####
 
-# create the tmp database directory if it doesn't exist
+# make the temp directory if it doesn't exist
 mkdir -p $SRCDIR
 
-# dump each database, excluding system databases, to sql files
+# dump each database to its own sql file
 DBLIST=`psql -l -U $USER \
 | awk '{print $1}' | grep -v "+" | grep -v "Name" | \
 grep -v "List" | grep -v "(" | grep -v "template" | \
 grep -v "postgres" | grep -v "root" | grep -v "|" | grep -v "|"`
 
+# get list of databases
 for DB in ${DBLIST}
 do
 pg_dump -U $USER $DB -f $SRCDIR/$DB.sql
@@ -37,16 +38,11 @@ cd $SRCDIR
 tar -czPf $NOWDATE-backup.tar.gz *.sql
 cd
 
-# upload all databases
+# upload backup to s3
 /usr/bin/s3cmd put $SRCDIR/$NOWDATE-backup.tar.gz s3://$BUCKET/$DESTDIR/
 
-# rotate out old backups
+# delete old backups from s3
 /usr/bin/s3cmd del --recursive s3://$BUCKET/$DESTDIR/$LASTDATE-backup.tar.gz
 
-# remove all local dumps
-rm -f $SRCDIR/$NOWDATE-backup.tar.gz
-
-for FILE in $(echo $(ls $SRCDIR/))
-do
-rm -f $SRCDIR/$FILE
-done
+# remove all files in our source directory
+rm -f $SRCDIR/*
