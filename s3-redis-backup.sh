@@ -8,8 +8,8 @@ LASTDATE=$(date +%Y-%m-%d --date='1 week ago')
 
 # set backup directory variables
 SRCDIR='/tmp/s3backups'
-DESTDIR='ec2/redis'
-BUCKET='collegeplus-backups'
+DESTDIR='directory-name'
+BUCKET='bucket-name'
 
 #### END CONFIGURATION ####
 
