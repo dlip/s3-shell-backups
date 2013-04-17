@@ -18,8 +18,8 @@ mkdir -p $SRCDIR
 
 # make a compressed copy of the redis dump
 
-cp /var/lib/redis/dump.rdb /tmp/s3backups/$NOWDATE-redis-dump.rdb
-gzip /tmp/s3backups/$NOWDATE-redis-dump.rdb
+cp /var/lib/redis/dump.rdb $SRCDIR/$NOWDATE-redis-dump.rdb
+gzip $SRCDIR/$NOWDATE-redis-dump.rdb
 
 # send the file off to s3
 /usr/bin/s3cmd put $SRCDIR/$NOWDATE-redis-dump.rdb.gz s3://$BUCKET/$DESTDIR/
