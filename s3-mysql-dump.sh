@@ -4,13 +4,14 @@
 
 # set dump directory variables
 SRCDIR='/tmp/s3backups'
-DESTDIR='bucket-folder'
-BUCKET='bucket'
+DESTDIR='path/to/s3folder'
+BUCKET='s3bucket'
 
 # database access details
 HOST='127.0.0.1'
-USER='dbusername'
-PASS='dbpassword'
+PORT='3306'
+USER='user'
+PASS='pass'
 
 #### END CONFIGURATION ####
 
@@ -19,11 +20,11 @@ mkdir -p $SRCDIR
 cd $SRCDIR
 
 # dump each database to its own sql file and upload it to s3
-for DB in $(mysql -u$USER -p$PASS -BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
+for DB in $(mysql -h$HOST -P$PORT -u$USER -p$PASS --BNe 'show databases' | grep -Ev 'mysql|information_schema|performance_schema')
 do
-mysqldump -h$HOST -u$USER -p$PASS --quote-names --create-options --force $DB > $DB.sql
+mysqldump -h$HOST -P$PORT -u$USER -p$PASS --quote-names --create-options --force $DB > $DB.sql
 tar -czPf $DB.tar.gz $DB.sql
-/usr/bin/s3cmd put $SRCDIR/$DB.tar.gz s3://$BUCKET/$DESTDIR/
+/usr/bin/s3cmd put $SRCDIR/$DB.tar.gz s3://$BUCKET/$DESTDIR/ --reduced-redundancy
 done
 
 # remove all files in our source directory
