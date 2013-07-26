@@ -3,7 +3,7 @@
 #### BEGIN CONFIGURATION ####
 
 # set dates for backup rotation
-NOWDATE=`date +%Y-%m-%d`
+NOWDATE=`date +%Y-%m-%d_%H.%M.%S`
 LASTDATE=$(date +%Y-%m-%d --date='1 week ago')
 
 # set backup directory variables
@@ -37,7 +37,10 @@ tar -czPf $NOWDATE-backup.tar.gz *.sql
 /usr/bin/s3cmd put $SRCDIR/$NOWDATE-backup.tar.gz s3://$BUCKET/$DESTDIR/
 
 # delete old backups from s3
-/usr/bin/s3cmd del --recursive s3://$BUCKET/$DESTDIR/$LASTDATE-backup.tar.gz
+for file in $(s3cmd ls s3://$BUCKET/$DESTDIR/ | tr -s ' ' | cut -d ' ' -f 4 | grep $LASTDATE)
+do
+    s3cmd del $file
+done
 
 # remove all files in our source directory
 cd
